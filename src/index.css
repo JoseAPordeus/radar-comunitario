@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* WhatsApp Colors */
+  --color-wa-green: #25d366;
+  --color-wa-teal: #128c7e;
+  --color-wa-bg-light: #f0f2f5;
+  --color-wa-bg-dark: #0b141a;
+  --color-wa-side-light: #ffffff;
+  --color-wa-side-dark: #111b21;
+}
+
+:root {
+  color-scheme: light dark;
+  --bg-app: #f0f2f5;
+  --text-app: #111b21;
+}
+
+.dark {
+  --bg-app: #0b141a;
+  --text-app: #e9edef;
+  color-scheme: dark;
+}
+
+@layer base {
+  body {
+    @apply transition-colors duration-300;
+    background-color: var(--bg-app);
+    color: var(--text-app);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-400/20 rounded-full;
+}
+.dark ::webkit-scrollbar-thumb {
+  @apply bg-zinc-600/50;
+}

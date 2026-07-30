@@ -1,0 +1,8 @@
+{
+  "name": "Radar Comunitário",
+  "description": "Plataforma de CRM político e comunitário com foco em organização por bairros, gestão de demandas e comunicação segmentada.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
