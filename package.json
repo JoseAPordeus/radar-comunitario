@@ -1,17 +1,26 @@
 {
-  "name": "react-example",
+  "name": "radar-comunitario",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
+    "build:api": "npm run build --workspace @radar-comunitario/api",
+    "build:whatsapp": "npm run build --workspace @radar-comunitario/whatsapp-agent",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "lint:api": "tsc -p apps/api/tsconfig.json --noEmit",
+    "lint:whatsapp": "tsc -p apps/whatsapp/tsconfig.json --noEmit",
+    "test:api": "npm run test --workspace @radar-comunitario/api",
+    "test:whatsapp": "npm run test --workspace @radar-comunitario/whatsapp-agent"
   },
   "dependencies": {
-    "@google/genai": "^1.29.0",
     "@supabase/supabase-js": "^2.105.4",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",

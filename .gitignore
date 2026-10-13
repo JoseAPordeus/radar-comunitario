@@ -4,5 +4,18 @@ dist/
 coverage/
 .DS_Store
 *.log
+*.dump
+backup/
 .env*
 !.env.example
+.idea/
+
+# WhatsApp local authentication and browser cache
+.wwebjs_auth/
+.wwebjs_cache/
+apps/whatsapp/.wwebjs_auth/
+apps/whatsapp/.wwebjs_cache/
+
+# Local agent/runtime secrets
+.agent-secrets/
+*.session

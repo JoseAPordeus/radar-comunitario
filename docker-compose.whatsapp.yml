@@ -1,0 +1,21 @@
+services:
+  whatsapp-agent:
+    build:
+      context: .
+      dockerfile: apps/whatsapp/Dockerfile
+    container_name: radar-whatsapp-agent
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      WHATSAPP_SESSION_PATH: /app/.wwebjs_auth
+      AGENT_API_URL: ${AGENT_API_URL:-http://host.docker.internal:4000/api/v1}
+      WHATSAPP_HEADLESS: "true"
+      CHROMIUM_PATH: /usr/bin/chromium
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - whatsapp_session:/app/.wwebjs_auth
+
+volumes:
+  whatsapp_session:

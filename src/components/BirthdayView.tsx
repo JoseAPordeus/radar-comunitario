@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { contactsApi, neighborhoodsApi } from '../lib/api';
 import { Contact, Neighborhood, Label } from '../types';
 import { Search, Filter, Calendar, MapPin, Tag as TagIcon, MessageSquare, Send, Phone } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
@@ -20,6 +20,7 @@ export default function BirthdayView() {
   const [filterDay, setFilterDay] = useState<number | 'all'>('all');
   const [filterNeighborhood, setFilterNeighborhood] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -27,17 +28,19 @@ export default function BirthdayView() {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: contactsData } = await supabase
-      .from('contacts')
-      .select('*, neighborhood:neighborhood_id(*), labels:labels(*)');
-    
-    const { data: neighborhoodsData } = await supabase
-      .from('neighborhoods')
-      .select('*');
-
-    if (contactsData) setContacts(contactsData);
-    if (neighborhoodsData) setNeighborhoods(neighborhoodsData);
-    setLoading(false);
+    setError('');
+    try {
+      const [contactsData, neighborhoodsData] = await Promise.all([
+        contactsApi.listAll(),
+        neighborhoodsApi.list()
+      ]);
+      setContacts(contactsData);
+      setNeighborhoods(neighborhoodsData);
+    } catch {
+      setError('Não foi possível carregar os aniversariantes.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getDayOfMonth = (dateStr?: string) => {
@@ -133,6 +136,12 @@ export default function BirthdayView() {
       </header>
 
       <div className="flex-1 p-6 overflow-y-auto space-y-8">
+        {error && (
+          <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={fetchData} className="font-bold underline">Tentar novamente</button>
+          </div>
+        )}
         {/* Aniversariantes de Hoje */}
         <section>
           <div className="flex items-center gap-2 mb-4">

@@ -1,0 +1,81 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: radar-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: radar-api
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: ${API_NODE_ENV:-development}
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+      REDIS_URL: redis://redis:6379
+      NODE_OPTIONS: --dns-result-order=ipv4first
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health/live').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
+
+  whatsapp-agent:
+    build:
+      context: .
+      dockerfile: apps/whatsapp/Dockerfile
+    container_name: radar-whatsapp-agent
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: ${WHATSAPP_NODE_ENV:-development}
+      AGENT_API_URL: http://api:4000/api/v1
+      WHATSAPP_SESSION_PATH: /app/.wwebjs_auth
+      WHATSAPP_CLIENT_ID: radar-comunitario-v2
+      WHATSAPP_HEADLESS: "true"
+      CHROMIUM_PATH: /usr/bin/chromium
+    volumes:
+      - whatsapp_session:/app/.wwebjs_auth
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4000/api/v1}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    image: radar-comunitario-frontend
+    container_name: radar-frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  redis_data:
+  whatsapp_session:

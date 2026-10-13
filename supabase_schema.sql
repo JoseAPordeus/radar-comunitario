@@ -1,3 +1,10 @@
+-- LEGACY SCHEMA — NÃO APLICAR EM PRODUÇÃO.
+--
+-- Este arquivo foi mantido apenas para referência/compatibilidade histórica.
+-- Use database/ddl/001_initial_schema.sql, 002_security_rls.sql e
+-- 003_message_jobs.sql na ordem documentada em database/README.md.
+-- O schema legado contém políticas públicas permissivas.
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

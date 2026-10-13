@@ -1,7 +1,16 @@
+export interface City {
+  id: string;
+  ibge_code: string;
+  name: string;
+  state_uf: 'PB';
+}
+
 export interface Neighborhood {
   id: string;
   name: string;
   created_at: string;
+  city_id?: string;
+  city?: City;
 }
 
 export interface Label {
@@ -16,17 +25,22 @@ export interface Contact {
   phone: string;
   whatsapp?: string;
   instagram?: string;
+  city_id?: string;
   neighborhood_id?: string;
   address?: string;
   birth_date?: string;
   notes?: string;
   additional_info?: any;
   avatar_url?: string;
+  whatsapp_opt_in?: boolean;
+  messaging_blocked?: boolean;
+  messaging_blocked_at?: string;
   created_at: string;
   last_contact_at: string;
   
   // Joined fields
   neighborhood?: Neighborhood;
+  city?: City;
   labels?: Label[];
 }
 
@@ -65,6 +79,7 @@ export interface MessageTemplate {
   content: string;
   type: 'ANIVERSARIO' | 'CAMPANHA';
   is_active: boolean;
+  version?: number;
   created_at: string;
 }
 

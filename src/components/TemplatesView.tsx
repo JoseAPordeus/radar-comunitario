@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { ApiClientError, birthdayAutomationApi, templatesApi } from '../lib/api';
 import { MessageTemplate } from '../types';
 import { Plus, Pencil, Trash2, Tag, Check, X, Search, AlertCircle, Info, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -23,13 +23,13 @@ export default function TemplatesView() {
 
   const fetchTemplates = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('message_templates')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (data) setTemplates(data);
-    setLoading(false);
+    try {
+      setTemplates(await templatesApi.list());
+    } catch (error) {
+      alert(error instanceof ApiClientError ? error.message : 'Não foi possível carregar os modelos.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -45,37 +45,25 @@ export default function TemplatesView() {
       is_active: currentTemplate.is_active ?? true
     };
 
-    let error;
-    if (currentTemplate.id) {
-      const { error: err } = await supabase
-        .from('message_templates')
-        .update(payload)
-        .eq('id', currentTemplate.id);
-      error = err;
-    } else {
-      const { error: err } = await supabase
-        .from('message_templates')
-        .insert(payload);
-      error = err;
-    }
-
-    if (!error) {
+    try {
+      if (currentTemplate.id) await templatesApi.update(currentTemplate.id, payload);
+      else await templatesApi.create(payload);
       setIsEditing(false);
       setCurrentTemplate(null);
       fetchTemplates();
-    } else {
-      alert('Erro ao salvar template: ' + error.message);
+    } catch (error) {
+      alert(error instanceof ApiClientError ? error.message : 'Erro ao salvar template.');
     }
   };
 
   const handleDelete = async (id: string) => {
     if (confirm('Deseja realmente excluir este template?')) {
-      const { error } = await supabase
-        .from('message_templates')
-        .delete()
-        .eq('id', id);
-      
-      if (!error) fetchTemplates();
+      try {
+        await templatesApi.remove(id);
+        fetchTemplates();
+      } catch (error) {
+        alert(error instanceof ApiClientError ? error.message : 'Não foi possível excluir o modelo.');
+      }
     }
   };
 
@@ -91,29 +79,26 @@ export default function TemplatesView() {
   }, []);
 
   const fetchAutomationSettings = async () => {
-    const { data } = await supabase
-      .from('automation_settings')
-      .select('value')
-      .eq('key', 'birthday_automation')
-      .single();
-    
-    if (data) {
-      setAutomationSettings(data.value);
-    }
+    try {
+      setAutomationSettings(await birthdayAutomationApi.get());
+    } catch { return; }
   };
 
   const saveAutomationSettings = async (newSettings: typeof automationSettings) => {
-    const { error } = await supabase
-      .from('automation_settings')
-      .update({ value: newSettings })
-      .eq('key', 'birthday_automation');
-    
-    if (!error) {
-      setAutomationSettings(newSettings);
-    } else {
-      alert('Erro ao salvar configurações de automação.');
+    try {
+      const savedSettings = await birthdayAutomationApi.update(newSettings);
+      setAutomationSettings(savedSettings);
+    } catch (error) {
+      alert(error instanceof ApiClientError ? error.message : 'Não foi possível salvar a automação.');
     }
   };
+
+  const birthdayTemplates = templates.filter(template => template.type === 'ANIVERSARIO' && template.is_active);
+  const selectedBirthdayTemplate = birthdayTemplates.find(template => template.id === automationSettings.template_id);
+  const birthdayPreview = selectedBirthdayTemplate?.content
+    .replace(/{nome}/g, 'Maria da Silva')
+    .replace(/{bairro}/g, 'Centro')
+    .replace(/{telefone}/g, '5583999999999');
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-hidden">
@@ -147,7 +132,26 @@ export default function TemplatesView() {
               <p className="text-white/80 text-sm">Envio automático de parabéns para os aniversariantes do dia.</p>
             </div>
             
-            {/* Automation settings removed per user request */}
+            <div className="w-full max-w-xl space-y-3 rounded-2xl bg-black/10 p-4">
+              <label className="flex items-center gap-3 text-sm font-semibold">
+                <input
+                  type="checkbox"
+                  checked={automationSettings.enabled}
+                  onChange={event => void saveAutomationSettings({ ...automationSettings, enabled: event.target.checked })}
+                  className="h-4 w-4 rounded border-white/50 text-wa-green focus:ring-wa-green"
+                />
+                Ativar envio automático no dia do aniversário
+              </label>
+              <select
+                value={automationSettings.template_id}
+                onChange={event => void saveAutomationSettings({ ...automationSettings, template_id: event.target.value })}
+                className="w-full rounded-lg bg-white/90 p-2 text-sm text-slate-800"
+              >
+                <option value="">Selecione um modelo de aniversário</option>
+                {birthdayTemplates.map(template => <option key={template.id} value={template.id}>{template.title}</option>)}
+              </select>
+              {birthdayPreview && <div className="rounded-lg bg-white/90 p-3 text-sm text-slate-700"><strong className="block mb-1">Prévia:</strong>{birthdayPreview}</div>}
+            </div>
           </div>
         </section>
 
@@ -201,7 +205,7 @@ export default function TemplatesView() {
                   </div>
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 truncate">{template.title}</h3>
+                <h3 className="font-bold text-lg mb-2 truncate">{template.title} <span className="text-xs font-normal text-slate-400">v{template.version || 1}</span></h3>
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl text-sm text-slate-600 dark:text-slate-400 italic mb-4 flex-1 line-clamp-4">
                   "{template.content}"
                 </div>

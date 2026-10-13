@@ -1,11 +1,14 @@
 @import "tailwindcss";
 
+/* O tema é controlado pelo ThemeContext, não apenas pela preferência do sistema. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* WhatsApp Colors */
-  --color-wa-green: #25d366;
+  --color-wa-green: #00a884;
   --color-wa-teal: #128c7e;
   --color-wa-bg-light: #f0f2f5;
   --color-wa-bg-dark: #0b141a;
@@ -14,14 +17,34 @@
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg-app: #f0f2f5;
   --text-app: #111b21;
+  --wa-page-bg: #f0f2f5;
+  --wa-sidebar-bg: #ffffff;
+  --wa-chat-bg: #efeae2;
+  --wa-surface-muted: #f7f8fa;
+  --wa-input-bg: #f0f2f5;
+  --wa-bubble-out: #d9fdd3;
+  --wa-bubble-in: #ffffff;
+  --wa-text-primary: #111b21;
+  --wa-text-secondary: #667781;
+  --wa-divider: #d1d7db;
 }
 
 .dark {
   --bg-app: #0b141a;
   --text-app: #e9edef;
+  --wa-page-bg: #111b21;
+  --wa-sidebar-bg: #202c33;
+  --wa-chat-bg: #0b141a;
+  --wa-surface-muted: #202c33;
+  --wa-input-bg: #2a3942;
+  --wa-bubble-out: #005c4b;
+  --wa-bubble-in: #202c33;
+  --wa-text-primary: #e9edef;
+  --wa-text-secondary: #8696a0;
+  --wa-divider: #374045;
   color-scheme: dark;
 }
 
@@ -43,6 +66,47 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-zinc-400/20 rounded-full;
 }
-.dark ::webkit-scrollbar-thumb {
+.dark ::-webkit-scrollbar-thumb {
   @apply bg-zinc-600/50;
+}
+
+/* Superfícies alinhadas ao WhatsApp Web/Business. */
+.wa-page-bg { background-color: var(--wa-page-bg); }
+.wa-sidebar-bg { background-color: var(--wa-sidebar-bg); }
+.wa-chat-bg { background-color: var(--wa-chat-bg); }
+.wa-surface { background-color: var(--wa-surface-muted); border-color: var(--wa-divider); }
+.wa-input { background-color: var(--wa-input-bg); color: var(--wa-text-primary); }
+.wa-input::placeholder { color: var(--wa-text-secondary); }
+.wa-muted { color: var(--wa-text-secondary); }
+.wa-divider { border-color: var(--wa-divider); }
+.wa-bubble-out {
+  background-color: var(--wa-bubble-out);
+  color: var(--wa-text-primary);
+  border-radius: 8px;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+.wa-bubble-in {
+  background-color: var(--wa-bubble-in);
+  color: var(--wa-text-primary);
+  border-radius: 8px;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+.wa-message-time { color: var(--wa-text-secondary); }
+
+/* Compatibilidade visual com as classes utilitárias legadas da tela de chat. */
+.wa-chat-bg .bg-wa-green\/20 {
+  background-color: var(--wa-bubble-out);
+  color: var(--wa-text-primary);
+  border-radius: 8px;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+.wa-chat-bg .bg-slate-200,
+.wa-chat-bg .dark\:bg-slate-800 {
+  background-color: var(--wa-bubble-in);
+  color: var(--wa-text-primary);
+  border-radius: 8px;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+.wa-chat-bg > .grid > section:last-child {
+  background-color: var(--wa-chat-bg);
 }
